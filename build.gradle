@@ -1,24 +1,47 @@
+/*buildscript {
+    repositories {
+        jcenter()
+        maven { url "https://plugins.gradle.org/m2/" }
+        maven { url = "http://maven.minecraftforge.net" }
+    }
+    dependencies {
+        classpath "gradle.plugin.com.github.jengelman.gradle.plugins:shadow:4.0.1"
+        classpath "net.minecraftforge.gradle:ForgeGradle:3.+"
+        //classpath "org.java-websocket:Java-WebSocket:1.5.2"
+        //classpath files("libs/Java-WebSocket-1.5.2.jar")
+        //classpath files("META-INF/libraries/Java-WebSocket-1.5.2.jar")
+    }
+}*/
 buildscript {
     repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
         jcenter()
-        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
+        maven { url = "http://maven.minecraftforge.net" }
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:3.+'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.1'
     }
 }
-        
-apply plugin: 'net.minecraftforge.gradle'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+}
+apply plugin: "net.minecraftforge.gradle"
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
+apply plugin: "eclipse"
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: "com.github.johnrengelman.shadow"
+apply plugin: "maven-publish"
 
-version = '1.0'
-group = 'com.example.WynncraftMod' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'WynncraftMod'
+version = "1.0"
+group = "com.example.WynncraftMod" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = "WynncraftMod"
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = "1.8" // Need this here so eclipse task generates correctly.
 
 minecraft {
     // The mappings can be changed at any time, and must be in the following format.
@@ -26,55 +49,80 @@ minecraft {
     // stable_#            Stables are built at the discretion of the MCP team.
     // Use non-default mappings at your own risk. they may not always work.
     // Simply re-run your setup task after changing the mappings to update your workspace.
-    //mappings channel: 'snapshot', version: '20171003-1.12'
-    mappings channel: 'snapshot', version: '20171003-1.12'
+    //mappings channel: "snapshot", version: "20171003-1.12"
+    mappings channel: "snapshot", version: "20171003-1.12"
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
     
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+    // accessTransformer = file("src/main/resources/META-INF/accesstransformer.cfg")
 
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
     runs {
         client {
-            workingDirectory project.file('run')
+            workingDirectory project.file("run")
 
             // Recommended logging data for a userdev environment
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property "forge.logging.markers", "SCAN,REGISTRIES,REGISTRYDUMP"
 
             // Recommended logging level for the console
-            property 'forge.logging.console.level', 'debug'
+            property "forge.logging.console.level", "debug"
         }
 
         server {
 
             // Recommended logging data for a userdev environment
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property "forge.logging.markers", "SCAN,REGISTRIES,REGISTRYDUMP"
 
             // Recommended logging level for the console
-            property 'forge.logging.console.level', 'debug'
+            property "forge.logging.console.level", "debug"
         }
     }
 }
-
+configurations {
+    inJar
+}
+configurations.compile.extendsFrom(configurations.inJar)
 dependencies {
-    // Specify the version of Minecraft to use, If this is any group other then 'net.minecraft' it is assumed
-    // that the dep is a ForgeGradle 'patcher' dependency. And it's patches will be applied.
+    // Specify the version of Minecraft to use, If this is any group other then "net.minecraft" it is assumed
+    // that the dep is a ForgeGradle "patcher" dependency. And it"s patches will be applied.
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
-    minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2855'
+    minecraft "net.minecraftforge:forge:1.12.2-14.23.5.2855"
+    compile "org.java-websocket:Java-WebSocket:1.5.1"
+    compile "org.slf4j:slf4j-simple:1.7.+"
+    //compile 'org.slf4j:slf4j-simple:1.7.25'
+    //compile 'org.slf4j:slf4j-api:1.7.+'
+    //compile 'org.slf4j:slf4j-log4j12:1.7.+'
+    //implementation 'org.slf4j:slf4j-api:1.7.25'
+    //implementation 'org.slf4j:slf4j-simple:1.7.25'
+    //implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+    //implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
+    //compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
+/*    //compile files("libs/Java-WebSocket-1.5.2.jar")
+    compile files("META-INF/libraries/Java-WebSocket-1.5.2.jar")
+    compile fileTree(dir: "libs", include: ["'*.jar'"])
+    implementation "org.java-websocket:Java-WebSocket:1.5.2"
+    //implementation files("libs/Java-WebSocket-1.5.2.jar")
+    implementation files("META-INF/libraries/Java-WebSocket-1.5.2.jar")
+    runtime files("META-INF/libraries/Java-WebSocket-1.5.2.jar")
+    //runtime files("libs/Java-WebSocket-1.5.2.jar")
+    runtime "org.java-websocket:Java-WebSocket:1.5.2"
+    inJar "org.java-websocket:Java-WebSocket:1.5.2"
+    //inJar files("libs/Java-WebSocket-1.5.2.jar")
+    inJar files("META-INF/libraries/Java-WebSocket-1.5.2.jar")*/
 
     // You may put jars on which you depend on in ./libs or you may define them like so..
     // compile "some.group:artifact:version:classifier"
     // compile "some.group:artifact:version"
 
     // Real examples
-    // compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
-    // compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
+    // compile "com.mod-buildcraft:buildcraft:6.0.8:dev"  // adds buildcraft to the dev env
+    // compile "com.googlecode.efficient-java-matrix-library:ejml:0.24" // adds ejml to the dev env
 
-    // The 'provided' configuration is for optional dependencies that exist at compile-time but might not at runtime.
-    // provided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
+    // The "provided" configuration is for optional dependencies that exist at compile-time but might not at runtime.
+    // provided "com.mod-buildcraft:buildcraft:6.0.8:dev"
 
     // These dependencies get remapped to your current MCP mappings
-    // deobf 'com.mod-buildcraft:buildcraft:6.0.8:dev'
+    // deobf "com.mod-buildcraft:buildcraft:6.0.8:dev"
 
     // For more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
@@ -95,18 +143,40 @@ jar {
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
+    //from ("libs/Java-WebSocket-1.5.2.jar")
+    //from ("META-INF/libraries/Java-WebSocket-1.5.2.jar")
+/*    from(configurations.inJar) {
+        into "META-INF/libraries"
+    }*/
+
 }
 
 // Example configuration to allow publishing using the maven-publish task
 // This is the preferred method to reobfuscate your jar file
-jar.finalizedBy('reobfJar') 
+jar.finalizedBy("reobfJar")
 // However if you are in a multi-project build, dev time needs unobfed jar files, so you can delay the obfuscation until publishing by doing
-//publish.dependsOn('reobfJar')
+//publish.dependsOn("reobfJar")
+reobf {
+    shadowJar {}
+}
+shadowJar {
+    dependencies {
+        //include(dependency('org.slf4j:slf4j-api:.*'))
+        //include(dependency('org.slf4j:slf4j-log4j12:.*'))
+        include(dependency('org.slf4j:slf4j-simple:.*'))
+        include(dependency('org.java-websocket:Java-WebSocket:.*'))
+        //include(dependency('org.slf4j:slf4j-simple:.*'))
+    }
 
+    baseName = archivesBaseName + "-" + version
+    classifier = null
+    version = null
+    configurations = [project.configurations.compile]
+}
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifact jar
+            artifact shadowJar
         }
     }
     repositories {
