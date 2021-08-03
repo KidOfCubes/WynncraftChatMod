@@ -27,7 +27,7 @@ public class Client extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
-        send("Hello, it is me. Marisssssssssssssssssssssssso :)");
+        send("Client Joined");
         log.info("new connection opened");
     }
 
