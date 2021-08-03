@@ -36,7 +36,11 @@ apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: "maven-publish"
-
+//apply plugin: 'war'
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
 version = "1.0"
 group = "com.example.WynncraftMod" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "WynncraftMod"
@@ -52,7 +56,7 @@ minecraft {
     //mappings channel: "snapshot", version: "20171003-1.12"
     mappings channel: "snapshot", version: "20171003-1.12"
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
-    
+
     // accessTransformer = file("src/main/resources/META-INF/accesstransformer.cfg")
 
     // Default run configurations.
@@ -78,20 +82,39 @@ minecraft {
         }
     }
 }
-configurations {
+/*configurations {
     inJar
 }
-configurations.compile.extendsFrom(configurations.inJar)
+configurations.compile.extendsFrom(configurations.inJar)*/
+configurations {
+    embed
+    compile.extendsFrom(embed)
+}
 dependencies {
     // Specify the version of Minecraft to use, If this is any group other then "net.minecraft" it is assumed
     // that the dep is a ForgeGradle "patcher" dependency. And it"s patches will be applied.
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft "net.minecraftforge:forge:1.12.2-14.23.5.2855"
-    compile "org.java-websocket:Java-WebSocket:1.5.1"
-    compile "org.slf4j:slf4j-simple:1.7.+"
-    //compile 'org.slf4j:slf4j-simple:1.7.25'
-    //compile 'org.slf4j:slf4j-api:1.7.+'
-    //compile 'org.slf4j:slf4j-log4j12:1.7.+'
+    compile "org.java-websocket:Java-WebSocket:1.5.2"
+
+    /*//compile "org.slf4j:slf4j-simple:1.7.2"*/
+    compile 'org.slf4j:slf4j-api:2.0.0-alpha2'
+    //compile "org.apache.logging.log4j:log4j-slf4j18-impl:2.+"
+
+    //runtime "org.slf4j:slf4j-simple:1.7.2"
+    runtime "org.slf4j:slf4j-api:2.0.0-alpha2"
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.0-alpha2'
+    /*runtime "org.apache.logging.log4j:log4j-slf4j18-impl:2.+"
+
+    //implementation "org.slf4j:slf4j-simple:1.7.2"
+    implementation "org.slf4j:slf4j-api:2.+"
+    implementation "org.apache.logging.log4j:log4j-slf4j18-impl:2.+"*/
+
+    //log4j-slf4j18-impl
+    //compile "com.sparkjava:spark-core:2.6.0"
+
+    //compile 'org.slf4j:slf4j-simple:1.7.2'
+    //compile 'org.slf4j:slf4j-log4j12:1.7.2'
     //implementation 'org.slf4j:slf4j-api:1.7.25'
     //implementation 'org.slf4j:slf4j-simple:1.7.25'
     //implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
@@ -134,15 +157,16 @@ dependencies {
 jar {
     manifest {
         attributes([
-            "Specification-Title": "WynncraftMod",
-            "Specification-Vendor": "WynncraftModsareus",
-            "Specification-Version": "1", // We are version 1 of ourselves
-            "Implementation-Title": project.name,
-            "Implementation-Version": "${version}",
-            "Implementation-Vendor" :"WynncraftModsareus",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                "Specification-Title": "WynncraftMod",
+                "Specification-Vendor": "WynncraftModsareus",
+                "Specification-Version": "1", // We are version 1 of ourselves
+                "Implementation-Title": project.name,
+                "Implementation-Version": "${version}",
+                "Implementation-Vendor" :"WynncraftModsareus",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
+    from configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
     //from ("libs/Java-WebSocket-1.5.2.jar")
     //from ("META-INF/libraries/Java-WebSocket-1.5.2.jar")
 /*    from(configurations.inJar) {
@@ -161,9 +185,10 @@ reobf {
 }
 shadowJar {
     dependencies {
-        //include(dependency('org.slf4j:slf4j-api:.*'))
-        //include(dependency('org.slf4j:slf4j-log4j12:.*'))
+        include(dependency('org.slf4j:slf4j-api:.*'))
+        //include(dependency('org.apache.logging.log4j:log4j-slf4j18-impl:.*'))
         include(dependency('org.slf4j:slf4j-simple:.*'))
+        //include(dependency("com.sparkjava:spark-core:.*"))
         include(dependency('org.java-websocket:Java-WebSocket:.*'))
         //include(dependency('org.slf4j:slf4j-simple:.*'))
     }
@@ -172,7 +197,29 @@ shadowJar {
     classifier = null
     version = null
     configurations = [project.configurations.compile]
+    relocate("org.slf4j", "shadow.org.slf4j")
 }
+
+// Configure Auto Relocation
+/*import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+
+task relocateShadowJar(type: ConfigureShadowRelocation) {
+    target = tasks.shadowJar
+    prefix = "shadow" // Default value is "shadow"
+
+}
+
+tasks.shadowJar.dependsOn tasks.relocateShadowJar*/
+
+/*
+compileJava.options.encoding = 'UTF-16'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-16'
+}
+*/
+
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
