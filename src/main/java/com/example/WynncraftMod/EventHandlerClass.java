@@ -1,14 +1,15 @@
 package com.example.WynncraftMod;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.text.ChatType;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.*;
+import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import org.apache.logging.log4j.Logger;
+import org.java_websocket.enums.ReadyState;
 import org.java_websocket.exceptions.WebsocketNotConnectedException;
 import org.json.JSONArray;
 
@@ -30,26 +31,47 @@ class EventHandlerClass {
     public void onChat(ClientChatReceivedEvent event) {
         if(event.getType()== ChatType.CHAT) {
             if (isGuildChat(event.getMessage().getUnformattedText())) {
-                if(!client.lastdiscordmsg.equalsIgnoreCase(event.getMessage().getUnformattedText().split(specialchar+"3]",2)[1].substring(1))) {
+                if(!client.lastdiscordmsg.equalsIgnoreCase(event.getMessage().getUnformattedText().split(specialchar+"3]",2)[1].substring(1))&&
+                        !event.getMessage().getUnformattedText().split(specialchar+"3]",2)[1].substring(1,Math.min(
+                                event.getMessage().getUnformattedText().split(specialchar+"3]",2)[1].length(), 10)).equals("[DISCORD]")) {
                     logger.info("YEA SOMEONE SAID SOMETHING1 " + event.getMessage().getUnformattedText());
                     logger.info("GUILDCHAT");
-                    try {
+                    if(client.getReadyState()== ReadyState.OPEN){
                         client.sendmsg(intoSentMessage(event.getMessage().getUnformattedText()));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        logger.info("GOD DAMN ERROR IS " + e.getStackTrace());
-                        try {
-                            client = new Client(new URI("ws://eheh.glitch.me/ws"), logger);
-                        } catch (URISyntaxException ex) {
-                            ex.printStackTrace();
+                    }else{
+                        if(client.getReadyState()== ReadyState.CLOSED){
+                            AttemptToTellPlayer("CHAT BRIDGE CONNECTION IS DISCONNECTED");
+                            AttemptToTellPlayer("Reconnecting...");
+                            client.reconnect();
                         }
-                        client.connect();
-                        client.sendmsg(intoSentMessage(event.getMessage().getUnformattedText()));
-                    } finally {
-                        logger.info("CALLED FINALLY");
                     }
+
                 }
             }
+        }
+    }
+    @SubscribeEvent
+    public void onConnect(FMLNetworkEvent.ClientConnectedToServerEvent event) {
+        String ip = Minecraft.getMinecraft().getCurrentServerData().serverIP;
+        logger.info("CONNECTED TO"+ip);
+        if(ip.substring(ip.length() - 13).equals("wynncraft.com")){
+            logger.info("CONNECTED TO WYNNCRAFT");
+        }
+        client.reconnect();
+        AttemptToTellPlayer("Reconnecting...");
+        //connectAgainIfNeeded();
+    }
+    @SubscribeEvent
+    public void onDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+        client.close(1000,"Disconnected from world");
+    }
+    public void AttemptToTellPlayer(String msg){
+        try{
+            Minecraft.getMinecraft().player.sendMessage(new TextComponentString(msg));
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally{
+            logger.info("TRIED TO TELL PLAYER "+msg);
         }
     }
     public String intoSentMessage(String msg){
