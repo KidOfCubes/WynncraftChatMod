@@ -24,7 +24,6 @@ public class WynncraftMod
 
     private static Logger logger;
     private static EventHandlerClass eventHandlerClass;
-    public Client client;
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
@@ -42,20 +41,21 @@ public class WynncraftMod
         logger.info("DIRT BLOCK >> {}", Blocks.DIRT.getRegistryName());
         logger.info("TEST");
         System.out.println("THISISANOTHERTEST");
-        if(!(client!=null)) {
+/*        if(!(client!=null)) {
             //ws://gem-cairnsmore.glitch.me/ws
             try {
                 client = new Client(new URI("ws://eheh.glitch.me/ws"), logger);
                 client.connect();
                 logger.info("THISISANOTHERTEST2");
-                eventHandlerClass = new EventHandlerClass(logger, client);
                 MinecraftForge.EVENT_BUS.register(eventHandlerClass);
             } catch (URISyntaxException e) {
                 e.printStackTrace();
             }
         }else{
             logger.info("THIS MFER TRIED TO LOAD TWICE");
-        }
+        }*/
+        eventHandlerClass = new EventHandlerClass(logger);
+        MinecraftForge.EVENT_BUS.register(eventHandlerClass);
 /*        try {
             client = new Client(new URI("ws://eheh.glitch.me:80"), logger);
             client.connect();

@@ -22,17 +22,15 @@ class EventHandlerClass {
     private static Logger logger;
     public Client client;
     public static String specialchar = "§";
-    EventHandlerClass(Logger logger, Client client){
+    EventHandlerClass(Logger logger){
         this.logger = logger;
-        this.client = client;
         //specialchar=specialchar.replaceAll("[^\\x00-\\x7F]","");
     }
     @SubscribeEvent
     public void onChat(ClientChatReceivedEvent event) {
         if(event.getType()== ChatType.CHAT) {
             if (isGuildChat(event.getMessage().getUnformattedText())) {
-                if(!client.lastdiscordmsg.equalsIgnoreCase(event.getMessage().getUnformattedText().split(specialchar+"3]",2)[1].substring(1))&&
-                        !event.getMessage().getUnformattedText().split(specialchar+"3]",2)[1].substring(1,Math.min(
+                if(!event.getMessage().getUnformattedText().split(specialchar+"3]",2)[1].substring(1,Math.min(
                                 event.getMessage().getUnformattedText().split(specialchar+"3]",2)[1].length(), 10)).equals("[DISCORD]")) {
                     logger.info("YEA SOMEONE SAID SOMETHING1 " + event.getMessage().getUnformattedText());
                     logger.info("GUILDCHAT");
@@ -40,9 +38,9 @@ class EventHandlerClass {
                         client.sendmsg(intoSentMessage(event.getMessage().getUnformattedText()));
                     }else{
                         if(client.getReadyState()== ReadyState.CLOSED){
-                            AttemptToTellPlayer("CHAT BRIDGE CONNECTION IS DISCONNECTED");
-                            AttemptToTellPlayer("Reconnecting...");
-                            client.reconnect();
+                            //AttemptToTellPlayer("CHAT BRIDGE CONNECTION IS DISCONNECTED");
+                            //AttemptToTellPlayer("Reconnecting...");
+                            reconnect();
                         }
                     }
 
@@ -56,14 +54,23 @@ class EventHandlerClass {
         logger.info("CONNECTED TO"+ip);
         if(ip.substring(ip.length() - 13).equals("wynncraft.com")){
             logger.info("CONNECTED TO WYNNCRAFT");
+            reconnect();
+            //AttemptToTellPlayer("Reconnecting...");
         }
-        client.reconnect();
-        AttemptToTellPlayer("Reconnecting...");
         //connectAgainIfNeeded();
     }
     @SubscribeEvent
     public void onDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+        logger.info("DISCONNECTED FROM SERVER");
         client.close(1000,"Disconnected from world");
+    }
+    public void reconnect(){
+        try {
+            client = new Client(new URI("ws://eheh.glitch.me/ws:3000"), logger);
+            client.connect();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
     }
     public void AttemptToTellPlayer(String msg){
         try{
